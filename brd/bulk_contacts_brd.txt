@@ -1,0 +1,623 @@
+4064000
+0
+4064000
+0
+0
+504825
+Business 
+Requirement
+Document
+Prepared for
+Clubforce | Simform
+Document Information
+Date
+Version
+Description
+Author
+Approved By
+03/12/2025
+v0.01
+Initial document
+Paul Rohan
+n/a
+16/12/2025
+v1.0
+Post feedback
+Paul Rohan
+13/01/2025
+v1.1
+Post design feedback
+Paul Rohan
+Document Purpose
+Capture the complete, testable requirements for Club Contacts Bulk Upload. Includes GDPR decisions, verification/consent behaviour, list semantics, and suppression rules. Ready for build once Open Questions are resolved.
+Project Summary
+Ingest offline contact CSVs, create accounts silently for new contacts, send verification to new contacts only, enforce verification before club outreach, attach to Lists, and capture Marketing/Lotto consent obtention. Uploaded contacts may be added to Active/
+Expired
+ lotto lists when lotto consent is attested.
+Business Goals &amp; Objectives
+The primary objective is to enable club admins and PROs to reach their entire community, including offline contacts who haven’t purchased or created accounts online, through a compliant, reliable bulk-import workflow. We will maintain strict data hygiene by preventing duplicate account creation; require verification before any email can be received to improve deliverability and compliance; and map an admin’s consent attestations to each contact’s (Account holder’s) MyAccount preferences (Marketing, Lotto notifications). In addition, when lotto consent is provided at upload, uploaded contacts may be added to the Active 
+or Expired
+ lotto players lists and are eligible to receive lotto results accordingly. Together, these objectives ensure clubs can communicate with both online and offline audiences while preserving trust, compliance, and data quality.
+Prototype
+https://chatgpt.com/canvas/shared/68e68470fec881919bdfc7de903be1fc
+In Scope Functionality
+Club Admin / Comms Admin (Back Office)
+Bulk import home page: Choose type of import: Contacts/Membership/Lotto
+Download sample file
+Upload contacts via fixed CSV template: Columns A/B/C = First/Last/Email with header
+Strict validation with inline errors: Show invalid rows on screen; block proceed until a clean file is re-uploaded (no error file download).
+Duplicate suppression: Never create a second account for an existing email; highlight in-file duplicates.
+Silent account creation + verification (new only): Create accounts for new emails and send verification; do not notify existing accounts.
+Create or attach to Lists: Create new Static Lists and add uploaded contacts to existing Static
+Add to Active/
+Expired
+ lotto lists (with consent): If Lotto consent is attested at upload, uploaded contacts can be added to Active/
+Expired
+ lotto players for results.
+Split existing Lotto players system list: The existing system List, Lotto players, must be split into: Active lotto players, Expired lotto players
+Batch-level consent attestation: Capture Marketing and Lotto notifications consent, storing uploader and time
+View key flags on profiles: See verification status and consent flags after upload; support troubleshooting and targeting.
+Send-time eligibility &amp; suppression: Enforce verification/consent rules
+Club PRO (Club Admin)
+Audience building from uploaded contacts — Select newly created Static Lists and eligible system lists to target club segments.
+Purpose-aware sending: Respect Marketing vs Transactional rules at send.
+Account Holder
+Verification to activate: New contacts receive a verification email; only verified contacts can receive emails (existing system behaviour).
+Nice to have: Login-based resend: If unverified at login, they can trigger Resend verification (no admin intervention required).
+Per-club communication preferences: Manage Club comms (master), General club news and club marketing, and Lotto + Draw notifications per club in MyAccount.
+Out of Scope Functionality
+CSV column mapping UI
+Downloadable error files
+Email compose UI redesign
+SMS/push
+Differentiation of contacts in a system list - No need to distinguish manually-added vs system-added contacts within system lists; consider for future enhancements.
+Functional Requirements
+FR-001 - Access Control &amp; Entry to Bulk Import (Must)
+The system must restrict access to the Bulk Import area to authorised users only and expose it via a single “Bulk Import” entry point. SU + BO feature flags.
+FR-002 - Bulk Import Launcher: Choose Import Type (Must)
+The system must present a launcher screen with three options: Contacts, Membership registrations, Lotto playslips, and route accordingly.
+FR-003 - CSV Upload &amp; Validation (Must)
+The system must accept a fixed‑schema CSV (A=First Name, B=Last Name, C=Email; header required), validate all rows, display invalid rows inline with reasons, and block progression until the dataset is 100% valid.
+FR-004 - Silent Account Creation &amp; Verification for New Contacts (Must)
+The system must silently create accounts for emails not found in the system and send a verification email to those new contacts only; existing contacts are not notified after upload.
+FR-005 - Lists: Static &amp; Lotto/ 50/50 Lists (Must)
+The system must allow creating a Static List 
+and/or adding uploaded contacts to existing Lists, including Active/Expired lotto players when Lotto consent is attested at upload.
+FR06
+ - Consent Attestation (batch) &amp; MyAccount Mapping
+Admin can provide consent for General club news and club marketing and/or Lotto / Draw notifications for uploaded club contacts. Store audit (uploader id, timestamp, consent types). Apply flags after verification. Users can change preferences in MyAccount.
+FR-
+007
+ - MyAccount Preferences &amp; Migration Defaults (Must)
+The system must expose per-club preferences (Club comms master, Marketing, Lotto notifications) and define secure defaults for existing account holders.
+FR-008 - Send‑time Eligibility (Must)
+The system must evaluate recipients against verification, consent, purpose, deliverability, and lotto rules with reconciling totals (Matched = Eligible + Suppressed).
+FR-009
+ - Compose Emails: Default Marketing, Eligibility Counts, and Transactional Override (Should)
+The system must default once-off and recurring club emails to General club news and marketing, compute and display recipient eligibility (matched total vs eligible total) based on consent/verification rules, and allow a Transactional override that sends to all matched recipients only after explicit confirmation by the sender.
+FR-010 - Split existing Lotto and Draw players system list
+The system must replace the existing single System List: “Lotto players” with two distinct System Lists: “Lotto players - active” and “Lotto players - expired”, and ensure these lists are selectable and behave correctly when sending a message. The same for Draw (50/50) players.
+FR-011 - System-Defined Dynamic Recipient List: “All club contacts” (Must)
+The system must provide a read-only, system-defined dynamic recipient list called “All club contacts”. This list automatically aggregates every unique contact associated with the club from any source, including: paid membership purchasers, Registered members, lotto ticket purchasers, 50/50 draw purchasers, shop purchasers, Club users (club owners, club admins, group managers), plus second parents/guardians added via the Connect app. The list is continuously updated and de-duplicated during send. The list is visible in the recipient dropdown for both Once-off and recurring emails and cannot be manually edited
+FR-012 — Admin Confirmation Email on Successful Bulk Upload (Must)
+The system must send a confirmation email to the uploading admin after a successful Contacts bulk upload, summarising the import, consents, list actions, and next steps, without exposing contact PII in the email body.
+Non - Functional Requirements
+ID
+Requirement
+NFR-001 Performance
+Validate ≤1,000 rows within 10 seconds
+NFR-002 Reliability
+99.9% monthly availability for upload services.
+NFR-003 Security/Privacy
+Consent attestation stored with uploader id, IP, timestamp
+NFR-005 Auditability
+Batch-level attestation and send eligibility decisions logged and queryable.
+NFR-006 Deliverability
+Hard bounces set UNDELIVERABLE via ESP webhooks; exclude from sends until updated.
+Acceptance Criteria
+FR-001 - Access Control &amp; Entry to Bulk Import
+Scenarios:
+S01 Authorised user sees Bulk Import entry and can open it
+S02 Club-level feature flag disabled hides/disables Bulk Import
+S03 User without permission cannot access
+Scenario: FR-001.S01 - Authorized user can access Bulk Import contacts
+  Given I am signed in as a Club Admin with &quot;Bulk import contacts&quot; permission
+  And the club-level feature flag for Bulk Import Contacts is enabled
+  When I log on to the Back Office
+  Then I see &quot;Bulk import contacts&quot; as an enabled entry
+  When I click &quot;Bulk import contacts&quot;
+  Then I land on the Bulk import contacts main page
+Scenario: FR-001.S02 - Club feature flag disabled hides Bulk Import
+  Given I am signed in as a Club Admin with &quot;Bulk import&quot; permission
+  And the club-level feature flag for Bulk Import is disabled
+  When I open the Bulk import side menu
+  Then &quot;Bulk Import&quot; is not visible (or clearly disabled with an explanatory tooltip)
+Scenario: FR-001.S03 - Permission denied blocks deep link
+  Given I am signed in as a Club admin user without &quot;Bulk import&quot; permission
+  When I navigate directly to /bulk-import
+  Then I see the bulk import contacts page greyed out and not selectable
+FR-002 — Bulk Import Launcher: Choose Import Type
+Scenario
+s
+S01 Launcher shows three import types and routes correctly
+S02 Contact tile routes to Contacts upload step 1
+S03 Memberships tile routes to Membership bulk upload step 1
+S04 Playslips tile routes to Lotto bulk upload step 1
+Scenario: FR-002.S01 - Launcher presents three import types
+  Given I am authorized to use Bulk Import
+  When I land on the Bulk Import launcher
+  Then I see tiles for &quot;Contacts&quot;, &quot;Membership registrations&quot;, and &quot;Lotto playslips&quot;
+Scenario: FR-010.S02 - Contacts tile opens the Contacts flow
+  Given I am on the Bulk Import launcher
+  When I click &quot;Contacts&quot;
+  Then I land on Contacts Upload - Step 1 (CSV Upload &amp; Instructions)
+Scenario: FR-010.S03 - Contacts tile opens the Membership bulk import flow
+  Given I am on the Bulk Import launcher
+  When I click &quot;Memberships&quot;
+  Then I land on Membership bulk import page
+Scenario: FR-010.S04 - Contacts tile opens the Lotto bulk import flow
+  Given I am on the Bulk Import launcher
+  When I click &quot;Playslips&quot;
+  Then I land on Lotto playslips upload page
+FR-003 - CSV Upload &amp; Validation (Fixed schema; inline invalids; 100% valid required)
+Scenarios:
+S01 Happy path valid CSV proceeds to Review
+S02 Missing header row blocks parse
+S03 Required fields blank → row invalid (inline)
+S04 Email format invalid → row invalid (inline)
+S05 In-file duplicate emails collapse; duplicates flagged “ignored”
+S06 Existing account + name mismatch handling (Path A soft-merge or Path B hard-block)
+S07 File size/row caps exceeded blocks parse
+S08 No downloadable error file; re-upload required
+S09 Encoding/whitespace normalization
+Scenario: FR-003.S01 - Valid CSV advances to Review
+  Given I am on Bulk upload contacts Step 1
+  And I see the instruction &quot;Columns A/B/C = First Name / Last Name / Email (header required)&quot;
+  When I upload a CSV with the correct header and all valid rows
+  Then the file parses successfully
+  And I advance to the Review step with 0 invalid rows
+Scenario: FR-003.S02 - Missing header row blocks parse
+  Given I am on Contacts Upload - Step 1
+  When I upload a CSV without a header row
+ Then the system shows an inline error &quot;Header required: First Name, Last Name, Email&quot;
+  And the Continue/Next button remains disabled
+Scenario Outline: FR-003.S03 - Required field blank marks row invalid
+  Given I uploaded a CSV with a header row
+  When the system validates row &lt;Row&gt;
+  Then the row is marked &quot;Invalid&quot;
+  And the reason lists &quot;&lt;Field&gt; is required&quot;
+  And I cannot continue until all invalids are resolved
+Examples:
+Row
+Field
+2
+First name
+4
+Last name
+10
+Email
+Scenario Outline: FR-003.S04 - Invalid email format marks row invalid
+  Given I uploaded a CSV with a header row
+  When the system validates row &lt;Row&gt; with Email &quot;&lt;Email&gt;&quot;
+  Then the row is marked &quot;Invalid&quot; with reason &quot;Invalid email format&quot;
+  And continue is blocked
+Examples:
+Row
+Field
+2
+alice@@domain.com
+4
+bob.domain.com
+10
+charlie@domain
+Scenario: FR-003.S05 - In-file duplicate emails are ignored after first
+Given I uploaded a CSV containing repeated email &quot;johndoe@club.ie&quot; on rows 2 and 5
+  When validation completes
+  Then row 2 is kept as the canonical record
+  And row 5 is flagged &quot;Duplicate in file (ignored)&quot;
+  And proceed is allowed if there are no other invalids
+Scenario
+: 
+FR-003.S06
+ - Existing account + name mismatch handling - Preferred approach
+  Given the system finds an existing account for email &quot;johndoe@club.ie&quot;
+ And the uploaded row has a First/Last name that differs from the existing account
+  Then the row shows a Warning &quot;Name mismatch with existing account. First name and last name will be updated from this account upon upload&quot;
+ And  the first and last name is updated from the account upon upload
+Alternative
+ approach:
+  When a hard block is implemented
+  Then the row is marked Invalid &quot;Name mismatch with existing account&quot;
+  And I cannot proceed
+Scenario: FR-003.S06.1 -  Name mismatch - First name differs
+  Given the system has an existing account: Email=johndoe@club.ie, First=John, Last=Doe
+  And the CSV row is: Email=johndoe@club.ie, First=Johnny, Last=Doe
+  When the admin uploads the csv 
+AND the validation runs
+  Then the row shows a Warning &quot;Name mismatch...&quot;
+  And on commit/proceed, the imported record First=John, Last=Doe
+Scenario: FR-003.S07 - File caps exceeded block parse
+  Given the row cap is 5,000 and size cap is 10 MB (TBD values)
+  When I upload a CSV with 6,000 rows or &gt;10 MB
+  Then parsing is blocked with a clear error stating the exceeded limit
+  And no partial processing occurs
+Scenario: FR-003.S08 - No error file; re-upload needed
+Given I see invalid rows listed inline
+Then the UI explains I must correct the source file and re-upload
+Scenario: FR-003.S09 - Encoding and whitespace normalization
+Given I upload a CSV with trailing spaces and mixed case
+When validation runs
+Then leading/trailing whitespace is trimmed
+And name and email comparisons use canonicalisation rules
+FR-004
+ — Silent Account Creation &amp; Verification (new accounts only)
+Scenarios:
+S01 New email: account created; verification sent; eligibility blocked until verified
+S02 Existing email: no notification sent; row remains valid (if names match)
+S03 Login flow offers Resend verification
+S04 Verification hard bounce: UNDELIVERABLE suppression
+S05 Verification completion flips eligibility
+S06 - Per-upload toggle defaults ON to send &quot;account created&quot; email
+S07 - Turning the toggle OFF skips the &quot;account created&quot; email (but still sends verification - TBC)
+Scenario: FR-004.S01 - Create account and send verification for new email
+  Given row 2 contains email &quot;new@club.ie&quot; not in the system
+  When I complete the validated import
+  Then a Clubforce account is created silently for &quot;new@club.ie&quot;
+  And a verification email is sent to &quot;new@club.ie&quot;
+And the contact is marked Not verified and ineligible for non-transactional sends
+Scenario: FR-004.S02 - Existing email does not receive a notification
+  Given row 3 contains email &quot;existing@club.ie&quot; which already has an account
+  When I complete the import
+  Then no verification or notification is sent to &quot;existing@club.ie&quot;
+  And the row is accepted if name matches per rules
+Scenario
+: FR-004.S03 - Login-based resend verification (Nice to have)
+  Given I am an unverified contact with a valid password
+  When I attempt to log in
+  Then I see an option &quot;Resend verification”
+  And when I click it
+ Then the system sends a fresh verification and invalidates any prior token (if expiring)
+Scenario: FR-004.S04 - Hard bounce marks UNDELIVERABLE
+ Given a verification email to &quot;bad@club.ie&quot; hard bounces
+ When the ESP webhook is received
+ Then the contact's deliverability is set to false
+ And suppression reason UNDELIVERABLE is applied for future sends
+And no Clubforce account is created
+(Reasons will be displayed in the UI in a separate “Delivery insights” BRD
+Scenario: FR-004.S05 - Verification completion unlocks eligibility
+  Given a contact was Not verified
+  When the contact completes verification
+  Then their status becomes Verified
+  And they become eligible for Marketing sends subject to consent rules
+Scenario: FR-004.S06 - Per-upload toggle defaults ON to send &quot;account created&quot; email
+  Given I am on the import club contacts page
+  And I see the toggle &quot;Send 'account created' email to newly created accounts&quot;
+  And the toggle is ON by default
+  And my validated file will create 25 new accounts
+  When I complete the import
+  Then the system sends the &quot;account created&quot; email to those 25 new accounts
+  And the verification email is also sent to those 25 new accounts
+  And no &quot;account created&quot; email is sent to existing accounts
+Scenario: FR-004.S07 - Turning the toggle OFF skips the &quot;account created&quot; email but still sends verification
+  Given I am on the Import Options step
+  And the toggle &quot;Send 'account created' email to newly created accounts&quot; is visible and ON
+  When I switch the toggle to OFF
+  And I complete the import that creates 10 new accounts
+  Then the system does NOT send the &quot;account created&quot; email to those 10 accounts
+  And the verification email IS sent to those 10 new accounts
+  And no notifications are sent to existing accounts
+FR-005 - Lists (Static &amp; Lotto)
+Scenario
+s:
+S01 Create a new Static List during import
+S02 Add uploaded contacts to existing Static List
+S03 Add to Active/
+Expired
+ lotto lists allowed when Lotto consent attested
+S04 Attempt to add to lotto lists without consent is blocked
+Scenario: FR-005.S01 - Create Static List at upload
+ Given I chose &quot;Create new Static List&quot; and named it &quot;2026 Diaspora&quot;
+ When I complete a 100% valid import
+ Then all imported contacts are added to &quot;2026 Diaspora&quot;  
+And then I can select &quot;2026 Diaspora&quot; as a recipient in the once-off and recurring emails
+Scenario: FR-005.S02 - Add to existing Static List
+  Given I selected existing list &quot;Life members&quot;
+  And some imported contacts are already on &quot;Life members&quot;
+  When I complete the import
+  Then only missing contacts are added
+  And no duplicate list is created
+Scenario: FR-005.S03 - Add to Active/
+Expired
+ lotto lists with consent
+Given I ticked Lotto consent attestation for this batch
+When I select &quot;Active lotto players&quot; as a target list
+Then imported contacts are added to Active lotto players
+AND Lotto players - Expired is not visible to be selected
+FR-00
+6 - Consent Attestation (batch) &amp; MyAccount Mapping
+Scenarios:
+S01 Admin attests Marketing and/or Lotto; audit is persisted immediately
+S02 Consent flags map to per-club preferences after verification
+S03 No attestation → defaults remain No/Unset
+S04 Support/Compliance can view batch audit
+​​S06 Consents populate only when a preference is unset
+S07 Existing Marketing/Lotto preferences are not overridden by upload
+S08 Mixed batch: some contacts have set prefs, others unset
+S09 Post-upload user changes in MyAccount remain authoritative
+S10 MyAccount label updated from “Mobile” to “SMS” everywhere it appears
+Developer note: 
+Updating Lotto results preference to ON in MyAccount does 
+not
+ add the user to any lotto results recipient list. It only updates their per-club preference flags. Send-time eligibility for lotto results continues to rely on existing list membership and consent rules.
+Future Consideration (not in scope for this release):
+Enable an optional auto-enrolment path so that when a user sets Lotto results = ON in MyAccount, the platform adds the contact to the appropriate Lotto results recipient list and logs an audit trail. This capability is out of scope now but should be estimated during sizing to inform roadmap planning.
+Scenario: FR-006.S01 - Immediate audit on attestation
+Given I am on Import Options and tick &quot;General club news and club marketing consent&quot; and &quot;Lotto result notifications&quot;
+When I confirm and move past Options
+Then the system writes an audit record containing uploader id, timestamp, 
+file
+, and consent flags
+Scenario: FR-006.S02 - Map attested consent after verification
+Given &quot;paul@club.ie&quot; is part of the attested batch and is Not verified
+When Paul verifies his account
+Then his per-club preferences in his MyAccount show Club Comms (as configured), Marketing=Yes (if attested), Lotto=Yes (if attested)
+Scenario: FR-006.S03 - Defaults with no attestation
+ Given no consent boxes were ticked for the batch
+ When contacts verify
+ Then their Marketing and Lotto are set to Unset
+Scenario: FR-006.S06 - Populate only when preference is unset
+  Given the admin uploads contacts and attests Marketing = Yes and Lotto = Yes for Club A
+  And contact &quot;aoife@club.ie&quot; has no existing preferences set in MyAccount for Club A
+  When Aoife verifies her account
+  Then her MyAccount for Club A sets Marketing = Yes and Lotto = Yes
+Scenario: FR-006.S07 - Do not override existing preferences
+  Given the admin uploads a batch and attests Marketing = Yes and Lotto = Yes for Club A
+  And contact &quot;ben@club.ie&quot; already has Marketing = No and Lotto = Yes in MyAccount for Club A
+  When the batch is processed and Ben verifies
+  Then Ben’s Marketing remains No (not overridden)
+  And Ben’s Lotto remains Yes (unchanged)
+  And no value replaces existing user-set preferences
+Scenario: FR-006.S08 - Mixed batch with set and unset preferences
+  Given the admin uploads a batch with Marketing = Yes and Lotto = Yes for Club A
+  And contact &quot;ciara@club.ie&quot; has no preferences set for Club A
+  And contact &quot;dan@club.ie&quot; already has Marketing = Yes and Lotto = No for Club A
+  When the upload is processed and both verify
+  Then Ciara’s Marketing = Yes and Lotto = Yes are populated from attestation
+  And Dan’s Marketing stays Yes and Lotto stays No (not overridden)
+Scenario: FR-006.S09 - Post-upload user changes remain authoritative
+  Given the admin uploaded contacts with Marketing = Yes and Lotto = Yes for Club A
+  And contact &quot;eve@club.ie&quot; verified and had those values populated from bulk upload
+  When Eve later sets Marketing = No in MyAccount for Club A
+  Then future send eligibility respects Marketing = No
+  And any subsequent uploads do not overwrite Eve’s Marketing preference
+Scenario: FR-006.S10 - MyAccount label uses &quot;SMS&quot; instead of &quot;Mobile&quot;
+  Given I am viewing MyAccount → Notifications Preferences for a club
+  Then the &quot;Mobile&quot; is shown as &quot;SMS&quot;
+  And underlying behavior, keys, and stored values remain unchanged
+FR-007: Send-time Eligibility &amp; System-wide Unverified Suppression
+Scenarios:
+S0S01 Marketing purpose requires Verified + General club news and club marketing=Yes
+S02 Transactional emails (receipt/password/welcome) bypasses marketing consent
+S03 Lotto results allowed when Lotto consent (including attested) exists
+S04 Platform-wide unverified suppression (not only import-origin)
+Scenario: FR-007.S01 - Marketing eligibility rules
+Given I am composing a once off or recurring email
+And the matched audience contains Verified/Unverified and various consent combinations
+When the system computes eligibility
+Then only contacts with Verified = true AND AND General club news and club marketing = Yes receive the email
+And all others are suppressed (specific reasons why some were not received will be included in a separate, “Delivery Insights” BRD
+Scenario: FR-007.S02 - Transactional bypass for receipts/password/welcome
+Given I am composing a Transactional email (receipt)
+When the system computes eligibility
+Then recipients are not blocked by Marketing consent
+And unverified may still be blocked if the transactional type requires verification (per channel rules)
+Scenario: FR-007.S03 - Lotto results allowed when Lotto consent exists
+Given I am sending Lotto results email
+And the audience includes contacts added via import with Lotto consent attested When the system computes eligibility
+Then those contacts are Eligible for lotto results email
+Scenario: FR-007.S04 - Platform-wide unverified suppression
+Given an Account holder is not verified
+When any non-transactional email is sent from any sender path (once-off, recurring)
+Then the contact is suppressed with reason UNVERIFIED (reason to be displayed in Delivery insights BRD)
+FR-008 - MyAccount Preferences &amp; Existing AH Defaults
+Scenarios:
+S01 Migration maps existing Account holder’s Email=Yes to Club General club news and club marketing=Yes;
+S02 Migration sets Lotto=Yes for historical lotto entrants
+S03 User edits per-club preferences; eligibility reflects changes
+S04 Registration form does not re-ask Marketing when already Yes (nice to have)
+Scenario
+: FR-008.S01 - Migration defaults
+ Given an existing AH with Email=Yes before this release
+ When this project is released
+ Then general club news and club marketing becomes Yes
+Scenario: FR-008.S02 - Migration sets Lotto=Yes for historical lotto entrants
+ Given an existing AH has previously purchased a lotto ticket for Club A
+ And the purchase is recorded against their Clubforce account for Club A
+ When this project is released
+ Then their per-club preferences for Club A set Lotto notifications = Yes
+Scenario: FR-008.S03 - User updates per-club preferences
+ Given I am a verified user in MyAccount
+ When I set General club news and club marketing =Yes and Lotto  notifications=Yes for Club A
+ Then subsequent Marketing and lotto notifications eligibility checks for Club A include me
+Scenario: FR-008.S04 - Registration form does not re-ask Marketing (Future consideration)
+  Given my Marketing=Yes already exists for Club A
+ When I register for a product with Club A
+Then any registration form does not re-ask Marketing consent
+FR-009 - Compose Emails
+Scenarios:
+S01 Default to Marketing; counts shown (Matched vs Eligible)
+S02 Deduplication across multiple lists before counting
+S03 Marketing send includes only eligible recipients
+S04 Marketing send blocked when Eligible = 0 (prompt override)
+S05 Transactional override requires confirmation checkbox
+S06 Transactional override sends to all matched except UNDELIVERABLE
+S07 Audit log captures classification, counts, and override confirmation
+S08 Suppression reconciliation visible and correct
+S09 Recurring email jobs honor the same rules at send time
+Scenario: FR-009.S01 - Default to Marketing and show counts
+ Given I open the once-off or recurring email compose screen
+And I select the Static List &quot;Supporters 2026&quot;
+When the system computes recipients
+Then the classification is Marketing by default
+And I see &quot;Recipients summary: &lt;Count of matched&gt; matched, &lt;Count of eligible&gt; eligible for marketing&quot;
+Given I have uploaded Club contacts
+When I open the once-off or recurring email compose screen
+And I upload contacts background job is still running
+When I select the recipients drop down
+Then the Lists being amended / created are disabled from selection
+AND I am informed why the selection is disabled: “This recipient list is temporarily unavailable while recent updates are applied. Please try again shortly.”
+Scenario: FR-009.S02 - Deduplicate recipients across lists
+Given I select Static List &quot;Supporters 2026&quot; and System List &quot;Members&quot;
+And some recipients exist in both lists
+When the system computes recipients
+Then Matched reflects the deduplicated unique emails
+And Eligible is computed from that deduplicated set
+Scenario: FR-007.S03 - Marketing send includes only eligible recipients
+Given classification is Marketing
+And the summary shows 675 matched and 600 eligible
+When I click Send
+Then only the 600 eligible recipients are targeted
+And suppressed recipients are excluded
+Scenario: FR-007.S04 - Eligible = 0 under Marketing prompts override (Nice to have)
+Given classification is Marketing
+And the summary shows 200 matched and 0 eligible
+When I attempt to send
+Then the system prevents sending
+And I am prompted that I can mark this as Transactional to send to all matched (subject to deliverability)
+Scenario: FR-009.S05 - Transactional override requires explicit confirmation
+  Given classification is Marketing
+ And I check &quot;I confirm this email is not marketing. Send to all recipients.&quot;
+When I proceed to send
+Then the classification is set to Transactional for this send only
+And the confirmation checkbox is required; if unchecked, sending is blocked
+Example
+:
+Recipients summary: 675 contacts match your selection. 600 are eligible to receive marketing emails based on their consent settings.
+Need to contact all 675? If this message is transactional (not marketing) under GDPR, you may send to all recipients. You are responsible for confirming the correct classification. Misuse may result in this option being withdrawn for your club.
+✅ I confirm this email is not marketing. Send to all recipients.
+Scenario: FR-009.S06 - Recurring emails re-evaluate at send time
+ Given I scheduled a recurring email (weekly)
+ And recipients and consents change over time
+ When a scheduled occurrence is about to send
+ Then the system recomputes Matched, Eligible, and Suppressed using current data
+And applies the same Marketing vs Transactional rules and exclusions
+FR-010 - Split Lotto players into into: Active lotto players, Expired lotto players
+Scenarios:
+FR-010.S01 – Recipients dropdown shows two lotto system lists (active + expired) and removes legacy “Lotto players”
+FR-010.S02 – Backward compatibility: legacy recurring emails using “Lotto players” are migrated/mapped to “Lotto players – active”
+FR-010.S03 – Selecting “Lotto players – active” includes only active lotto ticket holders
+FR-010.S04 – Selecting “Lotto players – expired” includes only expired lotto ticket holders
+FR-010.S05 – Selecting both lists includes both cohorts; deduplication applied
+FR-010.S06 - Recurring sends re-evaluate active/expired membership at send time (status changes over time)
+Scenario: FR-010.S01 - Recipients dropdown shows active/expired and removes legacy list
+ Given I am signed in as a club admin with Communications permission
+ And I am on the Once-off or Recurring email screen
+When I open the Choose recipients dropdown
+Then I see system list options &quot;Lotto players - active&quot; and &quot;Lotto players - expired&quot;
+And I do not see the legacy option &quot;Lotto players&quot;
+Scenario: FR-010.S02 - Legacy recurring email mapping to active lotto players
+Given a recurring email exists that was configured historically with the legacy system list &quot;Lotto players&quot;
+When the system loads that recurring email configuration in the edit email screen for that recurring email
+Then the recipients selection is mapped to &quot;Lotto players – active&quot;
+And the UI shows &quot;Lotto players – active&quot; as selected
+And the legacy label &quot;Lotto players&quot; is not shown
+Scenario: FR-010.S03 - Active lotto selection includes only active ticket holders
+ Given I am signed in as a club admin with Communications permission
+And I select &quot;Lotto players – active&quot; as recipients in the once-off or recurring email screen
+When the system computes recipients
+Then matched recipients include only contacts who have an active lotto ticket for the club
+And contacts with only expired lotto tickets are not included
+Scenario: FR-010.S04 - Expired lotto selection includes only expired ticket holders
+ Given I am signed in as a club admin with Communications permission
+And I select &quot;Lotto players – expired&quot; as recipients in the once-off or recurring email screen
+When the system computes recipients
+Then Matched recipients include only contacts who have an expired lotto ticket for the club
+And who have no other active lotto ticket for the club
+Scenario: FR-010.S05 - Selecting both active and expired includes both cohorts with deduplication
+Given I am signed in as a club admin with Communications permission
+And I select &quot;Lotto players – active&quot; and &quot;Lotto players – expired&quot; as recipients
+When the system computes recipients
+Then Matched recipients include the union of both cohorts
+And any recipient present in both cohorts is counted once
+And the system targets each recipient at most once per channel
+FR-010.S06 - Recurring sends re-evaluate active/expired membership at send time (status changes over time)
+Given I scheduled a recurring email with recipients &quot;Lotto players – active&quot;
+And a recipient’s lotto status changes from active to expired before the next scheduled send
+When the scheduled send occurs
+Then the system recomputes recipients using current lotto status
+And the recipient is excluded if they no longer meet the active criteria
+FR-011 - System-Defined Dynamic Recipient List: “All club contacts”
+Given I am signed in as a Club Admin with permission to send emails
+And the club has existing members, lotto purchasers, 50/50 purchasers, shop purchasers, admins/group managers, and guardians via Connect
+When I open the recipient picker in the once-off and/or recurring emails
+Then I see a system-defined list named &quot;All club contacts&quot;
+And the list includes contacts from Membership, Lotto, 50/50, Shop, Club Users, and Guardians (second parents)
+And each contact receives the email only once even if present in multiple sources
+Background:
+    Given I am signed in as a Club Admin with permission to perform Contacts bulk upload
+    And I have uploaded a CSV that validates to 100% with zero invalid rows
+FR-012 — Admin Confirmation Email on Successful Bulk Upload (Must)
+Scenario: FR-009.S01 - Send confirmation email upon successful import
+Given I am signed in as a Club Admin with permission to perform Contacts bulk upload
+And I have uploaded a CSV that validates to 100% with zero invalid rows
+When the import completes and records are committed
+Then the system sends a confirmation email to my account email
+And the email is classified as Transactional/Operational
+Scenario: FR-009.S02 - Email contains non-PII summary and links
+When I open the confirmation email
+Then I see club name, uploader name/email, datetime, batch ID, CSV filename
+And I see totals for rows processed, new accounts created, existing accounts matched, and verification emails sent
+And I do not see any raw contact PII (e.g., individual emails) in the body
+ Scenario: FR-009.S03 - Send email on failed or aborted import
+    Given the import fails validation or is aborted before commit
+    When the process ends
+    Then the email is still sent
+  With relevant information included
+Email Template:
+To
+ Uploader email address
+Cc
+Bcc
+Subject
+Hi {{UploaderName}},
+Your contacts import for {{ClubName}} completed successfully.
+Summary
+• Batch ID: {{BatchID}}
+• Uploaded file: {{FileName}}
+• Completed at: {{CompletedAt}}
+• Rows processed: {{RowsProcessed}}
+• New accounts created: {{NewAccounts}}
+• Existing accounts matched: {{ExistingAccounts}}
+• Verification emails sent: {{VerificationSent}}
+Lists
+• Static list created: {{CreatedListName}} {{CreatedListLinkOptional}}
+Thanks,
+Clubforce
+Assumptions &amp; Dependencies
+File size/row caps to be confirmed by Engineering (placeholder: 10MB and 5k rows).
+MyAccount supports per‑club preferences surface and edits.
+Verification token expiry/resend rules to be finalized with Engineering
+Risks
+Risk
+Likelihood
+Impact
+Mitigation / Next step
+Misuse of lotto results targeting
+Med
+High
+UI guardrails + consent checks; training and support notes
+Low verification completion
+Med
+Med
+Login resend; track KPI; optimize email copy
+Deliverability issues from poor data
+Low
+Med
+Strict validation + caps; inline remediation
+Responsibility Assignment Matrix
+Open questions 
+What is the added complexity in adding additional CF account fields into the upload file? E.g. adding Phone number and address fields.
+Verification token policy - what is it today? Expiration period
+Active / Expired lotto players - follow up on 50/50 players - what needs to be done?
+Creating the dynamic expired lotto players list needs to be part of this BRD
+Uploading contacts to the Lotto players - Active list - How to handle scenarios where the draw runs but the upload background job has not yet finished, resulting in those contacts not receiving the lotto results email.
