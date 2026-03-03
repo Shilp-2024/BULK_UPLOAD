@@ -9,7 +9,10 @@ testcases = [
     ("TC-AC-03","Access Control","High","Unauthorized user blocked from deep link","User lacks Bulk import permission","1. Sign in as a user without permission.\n2. Navigate to /bulk-import.","Access denied or page greyed out; cannot proceed."),
 
     # Launcher
-    ("TC-LA-01","Launcher","Medium","Launcher shows three import types and routes correctly","Authorized user on launcher","1. Open Bulk Import launcher.\n2. Observe tiles.\n3. Click each tile.","Each tile routes to the correct upload flow: Contacts, Memberships, Lotto."),
+    ("TC-LA-01","Launcher","Medium","Launcher presents three import types","Authorized user on launcher","1. Open Bulk Import launcher.\n2. Observe available tiles.","See tiles for 'Contacts', 'Membership registrations', and 'Lotto playslips'."),
+    ("TC-LA-02","Launcher","Medium","Contacts tile opens Contacts flow","On launcher","1. Click 'Contacts' tile.","Land on Contacts Upload - Step 1 (CSV Upload & Instructions)."),
+    ("TC-LA-03","Launcher","Medium","Membership tile opens Membership flow","On launcher","1. Click 'Membership registrations' tile.","Land on Membership bulk upload page."),
+    ("TC-LA-04","Launcher","Medium","Playslips tile opens Lotto flow","On launcher","1. Click 'Playslips' tile.","Land on Lotto playslips upload page."),
 
     # CSV Validation
     ("TC-CSV-01","CSV Validation","High","Valid CSV advances to Review","CSV with header and valid rows","1. Upload valid CSV.\n2. Validate.","File parses; 0 invalid rows; advance to Review."),
@@ -42,6 +45,18 @@ testcases = [
     ("TC-CA-02","Consent","High","Attested consent populates MyAccount after verify when unset","Attested batch with contacts with unset prefs","1. Commit import.\n2. Contact verifies.","Contact's per-club preferences set to attested values only if previously unset."),
     ("TC-CA-03","Consent","High","Do not override existing preferences","Contact has existing preferences set","1. Commit import and contact verifies.","Existing user-set preferences not overridden by attestation."),
 
+    # MyAccount Preferences & Migration Defaults
+    ("TC-MYA-01","MyAccount","Medium","Migration defaults for existing Email=Yes","System pre-release with Email=Yes contacts","1. Perform release migration.\n2. Check MyAccount for affected contacts.","General club news and club marketing set to Yes."),
+    ("TC-MYA-02","MyAccount","Medium","Migration sets Lotto=Yes for historical lotto entrants","System pre-release with lotto purchasers","1. Perform release migration.\n2. Check per-club Lotto preference.","Per-club Lotto notifications = Yes for historical entrants."),
+    ("TC-MYA-03","MyAccount","Medium","User updates per-club preferences","Verified contact in MyAccount","1. User sets General club news=Yes and Lotto notifications=Yes.\n2. Compose and send email.","Subsequent eligibility checks include updated preferences."),
+
+    # Compose Emails
+    ("TC-COMP-01","Compose","High","Default to Marketing classification and show Matched vs Eligible counts","Compose screen with recipient list selected","1. Select a Static List.\n2. System computes recipients.","Classification defaults to Marketing; Counts display Matched vs Eligible."),
+    ("TC-COMP-02","Compose","High","Deduplicate recipients across multiple lists","Multiple overlapping lists selected","1. Select multiple lists.\n2. View recipient counts.","Matched reflects deduplicated unique emails; Eligible computed accordingly."),
+    ("TC-COMP-03","Compose","High","Transactional override requires explicit confirmation","Compose screen with Matched > Eligible","1. Attempt send without confirmation.\n2. Check confirmation checkbox and retry.","Send blocked until confirmation checked; when checked send proceeds to matched excluding UNDELIVERABLE."),
+    ("TC-COMP-04","Compose","Medium","Recurring emails re-evaluate at send time","Scheduled recurring email configured","1. Set recurring email.\n2. Observe next scheduled send.","System recomputes Matched, Eligible, and Suppressed using current data at each occurrence."),
+
+
     # Send-time eligibility & compose behaviors
     ("TC-SEND-01","Send Eligibility","High","Marketing send includes only Verified + Marketing=Yes","Compose marketing email with mixed audience","1. Compute recipients.\n2. Send.","Only Verified AND Marketing=Yes are targeted; suppressed counts recorded."),
     ("TC-SEND-02","Send Eligibility","High","Transactional override requires explicit confirmation","Matched>Eligible scenario","1. Attempt send without checkbox checked.\n2. Attempt send with checkbox checked.","Send blocked until confirmation checked; when checked send proceeds to matched excluding UNDELIVERABLE."),
@@ -50,6 +65,9 @@ testcases = [
     # Lotto lists split
     ("TC-LO-01","Lotto","Medium","Recipients dropdown shows active+expired and removes legacy","Compose screen open","1. Open recipient picker.","See 'Lotto players - active' and 'Lotto players - expired'; legacy 'Lotto players' not present."),
     ("TC-LO-02","Lotto","Medium","Legacy recurring mapping to active","System has legacy recurring using Lotto players","1. Open recurring email config.","Recipients mapped to 'Lotto players - active'."),
+
+    # System-Defined Dynamic Recipient List
+    ("TC-SYS-01","Recipients","Medium","All club contacts system list visible and de-duplicated","Club with members, lotto purchasers, shop purchasers, club users, guardians","1. Open recipient picker.\n2. Look for 'All club contacts' list.","Read-only list 'All club contacts' visible; aggregates unique contacts from all sources."),
 
     # Admin confirmation email
     ("TC-ADM-01","Notifications","High","Admin receives transaction confirmation with non-PII summary","Successful commit of validated import","1. Commit import.\n2. Check uploader inbox.","Transactional email received with Batch ID, counts, filename, and no contact PII."),
