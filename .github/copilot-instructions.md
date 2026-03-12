@@ -22,20 +22,20 @@ BRD analysis and test specification workspace for a **Bulk Contacts Upload featu
 ## Project-Specific Conventions
 
 ### Gherkin Feature File Organization
-[features/bulk_contacts_upload.feature](features/bulk_contacts_upload.feature) uses **FR-XXX.SYY** naming:
+[features/bulk_contacts_upload.feature](../features/bulk_contacts_upload.feature) uses **FR-XXX.SYY** naming:
 - **FR** = Functional Requirement (linked to BRD)
 - **SYY** = Scenario within that requirement
 - Use `Background` for common setup (user role, feature flag)
 - **Example:** FR-003.S01 = CSV validation, first scenario
 
 ### Test Case Structure
-[tests/generate_testcases_xlsx.py](tests/generate_testcases_xlsx.py):
+[tests/generate_testcases_xlsx.py](../tests/generate_testcases_xlsx.py):
 - Generates XLSX with columns: T_ID, Module, Priority, Test_Summary, Pre_request, Test_Steps, Expected_result, Result
 - T_ID format: `TC-[Module-abbr]-[NN]` (e.g., TC-CSV-01, TC-SEND-02)
 - Python script is the source of truth; run `python generate_testcases_xlsx.py` to generate the test matrix
 
 ### BRD Structure
-[brd/bulk_contacts_brd.txt](brd/bulk_contacts_brd.txt):
+[brd/bulk_contacts_brd.txt](../brd/bulk_contacts_brd.txt):
 - Contains 11 Functional Requirements (FR-001 through FR-011)
 - Sections: Business Goals, In Scope, Out of Scope, Functional Requirements, Non-Functional Requirements
 - "Open Questions" section indicates unresolved decisions (e.g., hard-block vs soft-merge for name mismatches)
